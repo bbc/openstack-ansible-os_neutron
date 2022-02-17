@@ -243,11 +243,16 @@ class ProviderNetworksParsing(object):
         """
 
         for net in provider_networks:
+            reference_group = net["network"].get("reference_group")
+            if reference_group is None or reference_group in group_names:
+                in_reference_group = True
+            else:
+                in_reference_group = False
             if net['network']['type'] == "vlan":
                 if (
-                    set(
+                    (set(
                         net["network"]["group_binds"]
-                    ).intersection(group_names)
+                    ).intersection(group_names) and in_reference_group)
                     or "neutron_server" in group_names    # noqa W503
                 ):
                     if "vlan" not in self.network_types:
@@ -274,9 +279,9 @@ class ProviderNetworksParsing(object):
                     self.network_geneve_ranges.append(net['network']['range'])
             elif net['network']['type'] == "flat":
                 if (
-                    set(
+                    (set(
                         net["network"]["group_binds"]
-                    ).intersection(group_names)
+                    ).intersection(group_names) and in_reference_group)
                     or "neutron_server" in group_names  # noqa W503
                 ):
                     if "flat" not in self.network_types:
@@ -290,7 +295,7 @@ class ProviderNetworksParsing(object):
                 if (
                     set(
                         net["network"]["group_binds"]
-                    ).intersection(group_names)
+                    ).intersection(group_names) and in_reference_group
                 ):
                     if 'net_name' in net['network']:
                         if is_metal:
